@@ -273,6 +273,46 @@ class VisionProcessor:
             max_tokens=2000,
         )
 
+    def extract_table_from_image(self, image_bytes: bytes) -> Dict[str, Any]:
+        """
+        Extract table from image and return structured data.
+
+        This is used by TableProcessor for complex table fallback.
+
+        Args:
+            image_bytes: Table image bytes
+
+        Returns:
+            Dictionary with headers, rows, caption, confidence
+        """
+        result = self.extract_table(image_bytes)
+
+        if not result.get("success"):
+            return {"error": result.get("error", "Unknown error")}
+
+        # Parse the content
+        content = result.get("content")
+
+        # If content is a dict (parsed JSON), use it directly
+        if isinstance(content, dict):
+            return {
+                "headers": content.get("headers", []),
+                "rows": content.get("rows", []),
+                "caption": content.get("caption"),
+                "confidence": content.get("confidence", 0.8),
+            }
+
+        # Otherwise, try to parse the text response
+        # For now, return a simple structure
+        # TODO: Add more sophisticated parsing
+        return {
+            "headers": [],
+            "rows": [],
+            "caption": None,
+            "confidence": 0.7,
+            "raw_text": str(content),
+        }
+
     def ocr_scanned_document(self, image_bytes: bytes) -> Dict[str, Any]:
         """
         Extract text from scanned document image using OCR.
