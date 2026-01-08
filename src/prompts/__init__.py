@@ -8,10 +8,33 @@ Prompt templates for different extraction tasks:
 - QUALITY_VALIDATION_PROMPT: Quality validation prompt
 """
 
-# Prompts will be imported here as they are implemented
-# from .extraction_prompts import (
-#     TEXT_EXTRACTION_PROMPT,
-#     TABLE_EXTRACTION_PROMPT,
-#     IMAGE_ANALYSIS_PROMPT,
-# )
-# from .validation_prompts import QUALITY_VALIDATION_PROMPT
+# Vision prompts
+from .vision_prompts import (
+    FULL_PAGE_ANALYSIS_PROMPT,
+    IMAGE_ANALYSIS_PROMPT,
+    CHART_ANALYSIS_PROMPT,
+    TABLE_EXTRACTION_PROMPT,
+    SCANNED_DOCUMENT_PROMPT,
+    DIAGRAM_ANALYSIS_PROMPT,
+    FORM_EXTRACTION_PROMPT,
+    SMARTART_PROMPT,
+    QUALITY_CHECK_PROMPT,
+    get_prompt_for_content_type,
+    format_page_analysis_prompt,
+    format_quality_check_prompt,
+)
+
+__all__ = [
+    "FULL_PAGE_ANALYSIS_PROMPT",
+    "IMAGE_ANALYSIS_PROMPT",
+    "CHART_ANALYSIS_PROMPT",
+    "TABLE_EXTRACTION_PROMPT",
+    "SCANNED_DOCUMENT_PROMPT",
+    "DIAGRAM_ANALYSIS_PROMPT",
+    "FORM_EXTRACTION_PROMPT",
+    "SMARTART_PROMPT",
+    "QUALITY_CHECK_PROMPT",
+    "get_prompt_for_content_type",
+    "format_page_analysis_prompt",
+    "format_quality_check_prompt",
+]

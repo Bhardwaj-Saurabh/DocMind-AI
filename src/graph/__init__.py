@@ -7,7 +7,28 @@ This module contains the LangGraph state machines and workflow orchestration:
 - Router: Conditional routing logic
 """
 
-# Graph components will be imported here as they are implemented
-# from .extraction_graph import ExtractionWorkflow
-# from .state import GraphState, PageState
-# from .router import route_page, route_strategy
+# State management
+from .state import (
+    DocumentState,
+    PageState,
+    create_initial_state,
+    add_page_analysis,
+    add_page_result,
+    is_processing_complete,
+)
+
+# Workflow
+from .extraction_workflow import ExtractionWorkflow, create_extraction_workflow
+
+__all__ = [
+    # State
+    "DocumentState",
+    "PageState",
+    "create_initial_state",
+    "add_page_analysis",
+    "add_page_result",
+    "is_processing_complete",
+    # Workflow
+    "ExtractionWorkflow",
+    "create_extraction_workflow",
+]

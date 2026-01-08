@@ -8,8 +8,15 @@ Specialized processors for different content types:
 - ImageProcessor: Image analysis and OCR
 """
 
-# Processors will be imported here as they are implemented
-# from .vision_processor import VisionProcessor
+# Implemented processors
+from .vision_processor import VisionProcessor, create_vision_processor
+
+# TODO: Implement remaining processors
 # from .table_processor import TableProcessor
 # from .text_processor import TextProcessor
 # from .image_processor import ImageProcessor
+
+__all__ = [
+    "VisionProcessor",
+    "create_vision_processor",
+]
