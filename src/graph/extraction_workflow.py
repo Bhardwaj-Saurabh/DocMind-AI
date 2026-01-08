@@ -20,15 +20,17 @@ class ExtractionWorkflow:
     This workflow orchestrates the extraction process:
     1. Content Analysis: Analyze all pages to determine strategies
     2. Text Extraction: Process text-only pages (fast & cheap)
-    3. Vision Processing: Process visual content (images, charts, scanned docs)
-    4. Synthesis: Combine all results
+    3. Table Extraction: Extract tables with rule-based + vision fallback
+    4. Vision Processing: Process visual content (images, charts, scanned docs)
+    5. Synthesis: Combine all results
 
     Currently implements:
     - Content Analysis ✅
     - Text Extraction ✅
+    - Table Extraction ✅
     - Vision Processing ✅
 
-    TODO: Add table extraction, quality validation
+    TODO: Quality validation, parallel processing
     """
 
     def __init__(self, enable_vision: bool = True):
