@@ -196,14 +196,23 @@ class ExtractionWorkflow:
             sum(p.quality_score for p in page_results) / len(page_results) if page_results else 0.0
         )
 
+        # Collect all images, tables, charts from pages
+        all_images = []
+        all_tables = []
+        all_charts = []
+        for page in page_results:
+            all_images.extend(page.extracted_images)
+            all_tables.extend(page.extracted_tables)
+            all_charts.extend(page.extracted_charts)
+
         # Create result
         extraction_result = ExtractionResult(
             metadata=metadata,
             pages=page_results,
             full_text=full_text,
-            all_images=[],  # TODO: Collect from pages
-            all_tables=[],  # TODO: Collect from pages
-            all_charts=[],  # TODO: Collect from pages
+            all_images=all_images,
+            all_tables=all_tables,
+            all_charts=all_charts,
             total_processing_time=state["total_time"],
             total_processing_cost=state["total_cost"],
             average_quality_score=avg_quality,
