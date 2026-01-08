@@ -78,6 +78,7 @@ class ExtractionWorkflow:
         # Add nodes
         workflow.add_node("analyze_content", self._analyze_content_node)
         workflow.add_node("extract_text", self._extract_text_node)
+        workflow.add_node("extract_tables", self._extract_tables_node)
 
         if self.enable_vision:
             workflow.add_node("process_vision", self._process_vision_node)
@@ -90,12 +91,15 @@ class ExtractionWorkflow:
         # After analysis, go to text extraction
         workflow.add_edge("analyze_content", "extract_text")
 
-        # After text extraction, go to vision (if enabled) or finalize
+        # After text extraction, go to table extraction
+        workflow.add_edge("extract_text", "extract_tables")
+
+        # After table extraction, go to vision (if enabled) or finalize
         if self.enable_vision:
-            workflow.add_edge("extract_text", "process_vision")
+            workflow.add_edge("extract_tables", "process_vision")
             workflow.add_edge("process_vision", "finalize")
         else:
-            workflow.add_edge("extract_text", "finalize")
+            workflow.add_edge("extract_tables", "finalize")
 
         # Finalize leads to end
         workflow.add_edge("finalize", END)
@@ -131,6 +135,21 @@ class ExtractionWorkflow:
         log_agent_step("Workflow", "Entering extract_text node")
         state = self.text_extractor.process_node(state)
         state["current_phase"] = "text_extraction_complete"
+        return state
+
+    def _extract_tables_node(self, state: DocumentState) -> DocumentState:
+        """
+        Node: Extract tables from pages with structured content.
+
+        Args:
+            state: Current state
+
+        Returns:
+            Updated state with table extraction results
+        """
+        log_agent_step("Workflow", "Entering extract_tables node")
+        state = self.table_extractor.process_node(state)
+        state["current_phase"] = "table_extraction_complete"
         return state
 
     def _process_vision_node(self, state: DocumentState) -> DocumentState:
