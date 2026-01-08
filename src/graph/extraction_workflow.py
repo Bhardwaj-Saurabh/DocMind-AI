@@ -53,6 +53,7 @@ class ExtractionWorkflow:
         # Initialize agents
         self.content_analyzer = ContentAnalyzer()
         self.text_extractor = TextExtractor()
+        self.table_extractor = TableExtractor(enable_vision_fallback=enable_vision)
 
         if self.enable_vision:
             self.vision_agent = VisionAgent()
