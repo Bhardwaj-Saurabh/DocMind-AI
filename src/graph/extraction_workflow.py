@@ -8,7 +8,7 @@ from typing import Optional
 from langgraph.graph import StateGraph, END
 
 from .state import DocumentState, create_initial_state
-from ..agents import ContentAnalyzer, TextExtractor, VisionAgent
+from ..agents import ContentAnalyzer, TextExtractor, VisionAgent, TableExtractor
 from ..models import ExtractionResult
 from ..utils import get_logger, log_agent_step, get_config
 

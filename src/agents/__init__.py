@@ -15,6 +15,7 @@ This module contains all the LangGraph agents used in the document extraction wo
 from .content_analyzer import ContentAnalyzer
 from .text_extractor import TextExtractor
 from .vision_agent import VisionAgent
+from .table_extractor import TableExtractor
 
 # TODO: Implement remaining agents
 # from .adaptive_router import AdaptiveRouter
@@ -25,4 +26,5 @@ __all__ = [
     "ContentAnalyzer",
     "TextExtractor",
     "VisionAgent",
+    "TableExtractor",
 ]
