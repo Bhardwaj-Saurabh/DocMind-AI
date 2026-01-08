@@ -20,20 +20,44 @@ class ExtractionWorkflow:
     This workflow orchestrates the extraction process:
     1. Content Analysis: Analyze all pages to determine strategies
     2. Text Extraction: Process text-only pages (fast & cheap)
-    3. Additional processing: Vision, tables, etc. (TODO)
+    3. Vision Processing: Process visual content (images, charts, scanned docs)
     4. Synthesis: Combine all results
 
-    Currently implements: Content Analysis + Text Extraction
-    TODO: Add vision processing, table extraction, quality validation
+    Currently implements:
+    - Content Analysis ✅
+    - Text Extraction ✅
+    - Vision Processing ✅
+
+    TODO: Add table extraction, quality validation
     """
 
-    def __init__(self):
-        """Initialize the extraction workflow."""
+    def __init__(self, enable_vision: bool = True):
+        """
+        Initialize the extraction workflow.
+
+        Args:
+            enable_vision: Whether to enable vision processing (requires API key)
+        """
         self.logger = get_logger()
+        self.config = get_config()
+
+        # Check if we can enable vision
+        if enable_vision and not self.config.openai_api_key:
+            self.logger.warning("OpenAI API key not found, disabling vision processing")
+            enable_vision = False
+
+        self.enable_vision = enable_vision
 
         # Initialize agents
         self.content_analyzer = ContentAnalyzer()
         self.text_extractor = TextExtractor()
+
+        if self.enable_vision:
+            self.vision_agent = VisionAgent()
+            log_agent_step("Workflow", "Vision processing enabled")
+        else:
+            self.vision_agent = None
+            log_agent_step("Workflow", "Vision processing disabled (no API key)")
 
         # Build the graph
         self.graph = self._build_graph()
@@ -51,6 +75,10 @@ class ExtractionWorkflow:
         # Add nodes
         workflow.add_node("analyze_content", self._analyze_content_node)
         workflow.add_node("extract_text", self._extract_text_node)
+
+        if self.enable_vision:
+            workflow.add_node("process_vision", self._process_vision_node)
+
         workflow.add_node("finalize", self._finalize_node)
 
         # Define the flow
@@ -59,8 +87,12 @@ class ExtractionWorkflow:
         # After analysis, go to text extraction
         workflow.add_edge("analyze_content", "extract_text")
 
-        # After text extraction, finalize
-        workflow.add_edge("extract_text", "finalize")
+        # After text extraction, go to vision (if enabled) or finalize
+        if self.enable_vision:
+            workflow.add_edge("extract_text", "process_vision")
+            workflow.add_edge("process_vision", "finalize")
+        else:
+            workflow.add_edge("extract_text", "finalize")
 
         # Finalize leads to end
         workflow.add_edge("finalize", END)
@@ -96,6 +128,26 @@ class ExtractionWorkflow:
         log_agent_step("Workflow", "Entering extract_text node")
         state = self.text_extractor.process_node(state)
         state["current_phase"] = "text_extraction_complete"
+        return state
+
+    def _process_vision_node(self, state: DocumentState) -> DocumentState:
+        """
+        Node: Process pages with vision API.
+
+        Args:
+            state: Current state
+
+        Returns:
+            Updated state with vision processing results
+        """
+        log_agent_step("Workflow", "Entering process_vision node")
+
+        if self.vision_agent:
+            state = self.vision_agent.process_node(state)
+            state["current_phase"] = "vision_processing_complete"
+        else:
+            log_agent_step("Workflow", "Vision agent not available, skipping")
+
         return state
 
     def _finalize_node(self, state: DocumentState) -> DocumentState:
