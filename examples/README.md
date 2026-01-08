@@ -74,13 +74,45 @@ python examples/langgraph_extraction.py
 
 ---
 
-### 4. Multimodal Extraction (`multimodal_extraction.py`) ⭐
+### 4. Table Extraction (`table_extraction.py`)
+
+Focused example demonstrating table extraction with hybrid approach.
+
+**Features demonstrated:**
+- Rule-based table extraction (PyMuPDF)
+- Table complexity detection
+- Vision API fallback for complex tables
+- Cost optimization for table processing
+- CSV export of extracted tables
+
+**Run:**
+```bash
+python examples/table_extraction.py /path/to/pdf/with/tables.pdf
+```
+
+**Best for:**
+- Documents with data tables
+- Understanding table extraction strategies
+- Comparing rule-based vs vision approaches
+
+**Output:**
+```
+output/tables/
+  ├── table_1_1.csv    # First table from page 1
+  ├── table_2_1.csv    # First table from page 2
+  └── ...
+```
+
+---
+
+### 5. Multimodal Extraction (`multimodal_extraction.py`) ⭐
 
 **The complete end-to-end example with vision processing.**
 
 **Features demonstrated:**
-- Full workflow: analyze → extract_text → process_vision → finalize
+- Full workflow: analyze → extract_text → extract_tables → process_vision → finalize
 - Adaptive routing based on content type
+- Table extraction with rule-based + vision fallback
 - Vision API for charts, images, scanned pages
 - Detailed cost analysis and savings calculation
 - Page-by-page breakdown
