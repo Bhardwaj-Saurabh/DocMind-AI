@@ -11,8 +11,50 @@ Pydantic models for type-safe data structures:
 - ExtractionResult: Final extraction result
 """
 
-# Models will be imported here as they are implemented
-# from .document import DocumentMetadata, PageContent
-# from .extracted_content import ExtractedImage, ExtractedTable
-# from .analysis import ContentAnalysisResult, ProcessingStrategy
-# from .result import ExtractionResult
+# Document models
+from .document import (
+    DocumentMetadata,
+    PageContent,
+    ExtractionResult,
+    DocumentFormat,
+)
+
+# Extracted content models
+from .extracted_content import (
+    ExtractedImage,
+    ExtractedTable,
+    ExtractedChart,
+    ImageType,
+    TableComplexity,
+)
+
+# Analysis models
+from .analysis import (
+    ContentAnalysisResult,
+    ProcessingPlan,
+    ContentType,
+    ProcessingStrategy,
+    TextQuality,
+    TableInfo,
+)
+
+__all__ = [
+    # Document models
+    "DocumentMetadata",
+    "PageContent",
+    "ExtractionResult",
+    "DocumentFormat",
+    # Extracted content
+    "ExtractedImage",
+    "ExtractedTable",
+    "ExtractedChart",
+    "ImageType",
+    "TableComplexity",
+    # Analysis
+    "ContentAnalysisResult",
+    "ProcessingPlan",
+    "ContentType",
+    "ProcessingStrategy",
+    "TextQuality",
+    "TableInfo",
+]

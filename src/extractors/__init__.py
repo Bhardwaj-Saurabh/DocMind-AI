@@ -9,8 +9,17 @@ and basic content extraction:
 - BaseExtractor: Abstract base class for all extractors
 """
 
-# Extractors will be imported here as they are implemented
-# from .base import BaseExtractor
-# from .pdf_extractor import PDFExtractor
-# from .docx_extractor import DOCXExtractor
-# from .ppt_extractor import PPTExtractor
+# Base extractor
+from .base import BaseExtractor
+
+# Format-specific extractors
+from .pdf_extractor import PDFExtractor
+# from .docx_extractor import DOCXExtractor  # TODO: Implement
+# from .ppt_extractor import PPTExtractor  # TODO: Implement
+
+__all__ = [
+    "BaseExtractor",
+    "PDFExtractor",
+    # "DOCXExtractor",
+    # "PPTExtractor",
+]
