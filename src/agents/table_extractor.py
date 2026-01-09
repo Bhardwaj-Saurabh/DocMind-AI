@@ -9,6 +9,7 @@ Follows dependency injection pattern: accepts processors as constructor paramete
 """
 
 import time
+from typing import Any
 
 from ..graph.state import DocumentState
 from ..models import PageContent, ProcessingStrategy
@@ -49,15 +50,11 @@ class TableExtractor:
             try:
                 vision_processor = VisionProcessor()
                 self.logger.info(
-                    "Vision fallback enabled",
-                    agent=self.name,
-                    processor="VisionProcessor"
+                    f"Vision fallback enabled - agent={self.name} processor=VisionProcessor"
                 )
             except Exception as e:
                 self.logger.warning(
-                    "Could not initialize vision processor",
-                    agent=self.name,
-                    error=str(e)
+                    f"Could not initialize vision processor - agent={self.name} error={str(e)}"
                 )
                 vision_processor = None
 
@@ -65,9 +62,7 @@ class TableExtractor:
         self.enable_vision_fallback = enable_vision_fallback and vision_processor is not None
 
         self.logger.info(
-            "TableExtractor initialized",
-            agent=self.name,
-            vision_fallback_enabled=self.enable_vision_fallback
+            f"TableExtractor initialized - agent={self.name} vision_fallback_enabled={self.enable_vision_fallback}"
         )
 
     def process_node(self, state: DocumentState) -> DocumentState:
@@ -81,10 +76,7 @@ class TableExtractor:
             Updated state with table extraction results
         """
         self.logger.info(
-            "Processing pages with tables",
-            agent=self.name,
-            document_id=state["document_id"],
-            total_pages=len(state["page_analyses"])
+            f"Processing pages with tables - agent={self.name} document_id={state['document_id']} total_pages={len(state['page_analyses'])}"
         )
 
         start_time = time.time()
@@ -101,18 +93,12 @@ class TableExtractor:
 
         if not pages_to_process:
             self.logger.debug(
-                "No pages require table extraction",
-                agent=self.name,
-                document_id=state["document_id"]
+                f"No pages require table extraction - agent={self.name} document_id={state['document_id']}"
             )
             return state
 
         self.logger.info(
-            "Found pages with tables",
-            agent=self.name,
-            document_id=state["document_id"],
-            page_count=len(pages_to_process),
-            pages=pages_to_process
+            f"Found pages with tables - agent={self.name} document_id={state['document_id']} page_count={len(pages_to_process)} pages={pages_to_process}"
         )
 
         # Process each page

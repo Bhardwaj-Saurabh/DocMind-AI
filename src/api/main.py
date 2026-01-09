@@ -622,9 +622,7 @@ async def extract_document_sync(
 async def startup_event():
     """Initialize app on startup."""
     logger.info(
-        "DocMind-AI API starting",
-        version="0.1.0",
-        vision_enabled=bool(config.openai_api_key)
+        f"DocMind-AI API starting - version=0.1.0 vision_enabled={bool(config.openai_api_key)}"
     )
 
     # Ensure upload directory exists

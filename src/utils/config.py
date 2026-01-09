@@ -2,9 +2,9 @@
 Configuration management for DocMind-AI.
 """
 
-from typing import ClassVar
+from typing import ClassVar, Any
 from threading import Lock
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -27,6 +27,19 @@ class Config(BaseSettings):
     # API Keys
     openai_api_key: str | None = Field(default=None)
     anthropic_api_key: str | None = Field(default=None)
+
+    # Azure OpenAI Configuration
+    azure_openai_api_key: str | None = Field(default=None)
+    azure_openai_endpoint: str | None = Field(default=None)
+    azure_openai_api_version: str = Field(default="2024-12-01-preview")
+    azure_openai_deployment_name: str | None = Field(default=None)
+    azure_openai_vision_deployment: str | None = Field(default=None)
+
+    # Azure Anthropic Configuration
+    azure_anthropic_api_key: str | None = Field(default=None)
+    azure_anthropic_endpoint: str | None = Field(default=None)
+    azure_anthropic_api_version: str = Field(default="2024-01-01")
+    azure_anthropic_deployment_name: str | None = Field(default=None)
 
     # Model Configuration
     text_extraction_model: str = Field(default="gpt-4o-mini")
@@ -57,12 +70,20 @@ class Config(BaseSettings):
     enable_quality_validation: bool = Field(default=True)
 
     # Model Fallback Chains
-    text_fallback_models: list[str] = Field(
-        default_factory=lambda: ["gpt-4o-mini", "gpt-4o", "claude-sonnet-4-5"]
+    text_fallback_models: str | list[str] = Field(
+        default="gpt-4o-mini,gpt-4o,claude-sonnet-4-5"
     )
-    vision_fallback_models: list[str] = Field(
-        default_factory=lambda: ["gpt-4o", "gpt-4-turbo", "claude-sonnet-4-5"]
+    vision_fallback_models: str | list[str] = Field(
+        default="gpt-4o,gpt-4-turbo,claude-sonnet-4-5"
     )
+
+    @field_validator('text_fallback_models', 'vision_fallback_models', mode='before')
+    @classmethod
+    def parse_comma_separated(cls, v: Any) -> list[str]:
+        """Parse comma-separated string into list."""
+        if isinstance(v, str):
+            return [item.strip() for item in v.split(',') if item.strip()]
+        return v
 
     # Logging Configuration
     log_level: str = Field(default="INFO")

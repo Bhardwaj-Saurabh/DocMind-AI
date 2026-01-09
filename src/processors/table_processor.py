@@ -8,6 +8,7 @@ This processor implements a cost-optimized approach to table extraction:
 """
 
 import time
+from typing import Optional, Any
 
 from ..models import ExtractedTable, TableComplexity
 from ..utils import get_logger, log_cost
@@ -26,7 +27,7 @@ class TableProcessor:
     RULE_BASED_COST = 0.002  # PyMuPDF/pdfplumber extraction
     VISION_FALLBACK_COST = 0.02  # OpenAI Vision API
 
-    def __init__(self, vision_processor: any | None = None):
+    def __init__(self, vision_processor: Any | None = None):
         """
         Initialize table processor.
 
@@ -372,7 +373,7 @@ class TableProcessor:
         )
 
 
-def create_table_processor(vision_processor: any | None = None) -> TableProcessor:
+def create_table_processor(vision_processor: Any | None = None) -> TableProcessor:
     """
     Factory function to create a table processor.
 

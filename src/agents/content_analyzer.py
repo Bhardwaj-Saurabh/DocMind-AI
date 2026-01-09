@@ -5,6 +5,7 @@ This is the CRITICAL agent that enables adaptive processing and cost optimizatio
 """
 
 import time
+from typing import Dict, Any
 
 from ..models import ProcessingPlan
 from ..graph.state import DocumentState
@@ -43,11 +44,9 @@ class ContentAnalyzer:
             Updated state with page analyses
         """
         # Structured logging with context
+        pages = state["metadata"].total_pages if state["metadata"] else "unknown"
         self.logger.info(
-            "Starting content analysis",
-            agent=self.name,
-            pages=state["metadata"].total_pages if state["metadata"] else "unknown",
-            document_id=state["document_id"]
+            f"Starting content analysis - agent={self.name} pages={pages} document_id={state['document_id']}"
         )
 
         start_time = time.time()
@@ -58,11 +57,7 @@ class ContentAnalyzer:
         if not state["metadata"]:
             state["metadata"] = extractor.get_metadata()
             self.logger.info(
-                "Loaded document metadata",
-                agent=self.name,
-                title=state["metadata"].title,
-                pages=state["metadata"].total_pages,
-                format=state["metadata"].format.value
+                f"Loaded document metadata - agent={self.name} title={state['metadata'].title} pages={state['metadata'].total_pages} format={state['metadata'].format.value}"
             )
 
         total_pages = state["metadata"].total_pages
@@ -96,11 +91,7 @@ class ContentAnalyzer:
             except Exception as e:
                 # Structured error logging
                 self.logger.error(
-                    "Page analysis failed",
-                    agent=self.name,
-                    page=page_num,
-                    document_id=state["document_id"],
-                    error=str(e),
+                    f"Page analysis failed - agent={self.name} page={page_num} document_id={state['document_id']} error={str(e)}",
                     exc_info=True
                 )
                 state["errors"].append(f"Analysis failed for page {page_num}: {str(e)}")
@@ -119,15 +110,9 @@ class ContentAnalyzer:
         duration = time.time() - start_time
 
         # Structured logging for completion with full context
+        pps = len(page_analyses) / duration if duration > 0 else 0
         self.logger.info(
-            "Content analysis completed",
-            agent=self.name,
-            document_id=state["document_id"],
-            pages_analyzed=len(page_analyses),
-            total_estimated_cost_usd=total_cost,
-            total_estimated_time_seconds=total_time,
-            analysis_duration_seconds=duration,
-            pages_per_second=len(page_analyses) / duration if duration > 0 else 0
+            f"Content analysis completed - agent={self.name} document_id={state['document_id']} pages_analyzed={len(page_analyses)} total_estimated_cost_usd={total_cost} total_estimated_time_seconds={total_time} analysis_duration_seconds={duration} pages_per_second={pps}"
         )
 
         # Update phase
