@@ -201,9 +201,9 @@ class ExtractionWorkflow:
         all_tables = []
         all_charts = []
         for page in page_results:
-            all_images.extend(page.extracted_images)
-            all_tables.extend(page.extracted_tables)
-            all_charts.extend(page.extracted_charts)
+            all_images.extend(page.images)
+            all_tables.extend(page.tables)
+            all_charts.extend(page.charts)
 
         # Create result
         extraction_result = ExtractionResult(

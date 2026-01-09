@@ -306,8 +306,9 @@ class VisionAgent:
             state["total_time"] += page_content.processing_time
 
             # Update strategy counts
-            strategy = page_content.processing_strategy.value
-            state["strategy_counts"][strategy] = state["strategy_counts"].get(strategy, 0) + 1
+            if page_content.processing_strategy:
+                strategy = page_content.processing_strategy.value
+                state["strategy_counts"][strategy] = state["strategy_counts"].get(strategy, 0) + 1
 
         log_agent_step(
             self.name,

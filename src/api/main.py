@@ -151,10 +151,7 @@ async def process_document_async(
         jobs[job_id]["progress"] = 10.0
 
         logger.info(
-            "Starting document processing",
-            job_id=job_id,
-            filename=original_filename,
-            vision_enabled=enable_vision
+            f"Starting document processing - job_id={job_id} filename={original_filename} vision_enabled={enable_vision}"
         )
 
         # Create extractor
@@ -201,15 +198,11 @@ async def process_document_async(
         })
 
         logger.info(
-            "Document processing completed",
-            job_id=job_id,
-            pages=result.metadata.total_pages,
-            cost=result.total_processing_cost,
-            time=result.total_processing_time
+            f"Document processing completed - job_id={job_id} pages={result.metadata.total_pages} cost={result.total_processing_cost} time={result.total_processing_time}"
         )
 
     except UnsupportedFormatError as e:
-        logger.error(f"Unsupported format: {e}", job_id=job_id)
+        logger.error(f"Unsupported format: {e} - job_id={job_id}")
         jobs[job_id].update({
             "status": JobStatus.FAILED,
             "updated_at": datetime.now().isoformat(),
@@ -217,7 +210,7 @@ async def process_document_async(
         })
 
     except DocumentProcessingError as e:
-        logger.error(f"Processing error: {e}", job_id=job_id, exc_info=True)
+        logger.error(f"Processing error: {e} - job_id={job_id}", exc_info=True)
         jobs[job_id].update({
             "status": JobStatus.FAILED,
             "updated_at": datetime.now().isoformat(),
@@ -225,7 +218,7 @@ async def process_document_async(
         })
 
     except Exception as e:
-        logger.error(f"Unexpected error: {e}", job_id=job_id, exc_info=True)
+        logger.error(f"Unexpected error: {e} - job_id={job_id}", exc_info=True)
         jobs[job_id].update({
             "status": JobStatus.FAILED,
             "updated_at": datetime.now().isoformat(),
@@ -238,7 +231,7 @@ async def process_document_async(
             if os.path.exists(file_path):
                 os.remove(file_path)
         except Exception as e:
-            logger.warning(f"Failed to clean up file: {e}", file_path=file_path)
+            logger.warning(f"Failed to clean up file: {e} - file_path={file_path}")
 
 
 # ============================================================================
@@ -337,10 +330,7 @@ async def extract_document(
         )
 
         logger.info(
-            "Extraction job created",
-            job_id=job_id,
-            filename=file.filename,
-            output_format=output_format
+            f"Extraction job created - job_id={job_id} filename={file.filename} output_format={output_format}"
         )
 
         return JobResponse(
@@ -466,7 +456,7 @@ async def delete_job(job_id: str):
 
     job = jobs.pop(job_id)
 
-    logger.info("Job deleted", job_id=job_id)
+    logger.info(f"Job deleted - job_id={job_id}")
 
     return {"message": "Job deleted successfully", "job_id": job_id}
 
@@ -551,9 +541,7 @@ async def extract_document_sync(
             f.write(content)
 
         logger.info(
-            "Starting synchronous extraction",
-            job_id=job_id,
-            filename=file.filename
+            f"Starting synchronous extraction - job_id={job_id} filename={file.filename}"
         )
 
         # Create extractor
@@ -580,10 +568,7 @@ async def extract_document_sync(
             content = result.model_dump()
 
         logger.info(
-            "Synchronous extraction completed",
-            job_id=job_id,
-            pages=result.metadata.total_pages,
-            cost=result.total_processing_cost
+            f"Synchronous extraction completed - job_id={job_id} pages={result.metadata.total_pages} cost={result.total_processing_cost}"
         )
 
         return ExtractionResultResponse(

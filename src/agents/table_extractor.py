@@ -119,7 +119,7 @@ class TableExtractor:
                     self.name,
                     f"Processed page {page_num + 1}",
                     {
-                        "tables": len(page_result.extracted_tables),
+                        "tables": len(page_result.tables),
                         "cost": f"${page_result.processing_cost:.4f}",
                     },
                     level="debug",

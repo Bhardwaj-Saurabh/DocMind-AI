@@ -56,8 +56,9 @@ class ContentAnalyzer:
         # Get metadata if not already loaded
         if not state["metadata"]:
             state["metadata"] = extractor.get_metadata()
+            format_str = state['metadata'].format.value if state['metadata'].format else "unknown"
             self.logger.info(
-                f"Loaded document metadata - agent={self.name} title={state['metadata'].title} pages={state['metadata'].total_pages} format={state['metadata'].format.value}"
+                f"Loaded document metadata - agent={self.name} title={state['metadata'].title} pages={state['metadata'].total_pages} format={format_str}"
             )
 
         total_pages = state["metadata"].total_pages

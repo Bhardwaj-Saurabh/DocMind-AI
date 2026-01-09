@@ -11,7 +11,7 @@ import time
 import json
 from io import BytesIO
 
-from openai import OpenAI
+from openai import OpenAI, AzureOpenAI
 from PIL import Image
 
 from ..models import ExtractedImage, ExtractedChart, ContentType
@@ -56,6 +56,21 @@ class VisionProcessor:
             if not self.config.openai_api_key:
                 raise ValueError("OpenAI API key not configured")
             self.client = OpenAI(api_key=self.config.openai_api_key)
+        elif self.provider == "azure_openai":
+            if not self.config.azure_openai_api_key:
+                raise ValueError("Azure OpenAI API key not configured")
+            if not self.config.azure_openai_endpoint:
+                raise ValueError("Azure OpenAI endpoint not configured")
+            self.client = AzureOpenAI(
+                api_key=self.config.azure_openai_api_key,
+                api_version=self.config.azure_openai_api_version,
+                azure_endpoint=self.config.azure_openai_endpoint
+            )
+            # For Azure, use the deployment name as the model
+            if self.config.azure_openai_vision_deployment:
+                self.model = self.config.azure_openai_vision_deployment
+            elif self.config.azure_openai_deployment_name:
+                self.model = self.config.azure_openai_deployment_name
         else:
             # TODO: Add Anthropic support
             raise ValueError(f"Provider {self.provider} not yet supported")

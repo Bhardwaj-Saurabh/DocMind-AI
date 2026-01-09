@@ -21,6 +21,13 @@ from .pdf_extractor import PDFExtractor
 # Factory
 from .factory import ExtractorFactory, create_extractor
 
+# Register extractors with the factory
+from ..models import DocumentFormat
+
+ExtractorFactory.register(DocumentFormat.PDF, PDFExtractor)
+# ExtractorFactory.register(DocumentFormat.DOCX, DOCXExtractor)  # TODO
+# ExtractorFactory.register(DocumentFormat.PPTX, PPTExtractor)  # TODO
+
 __all__ = [
     "BaseExtractor",
     "PDFExtractor",

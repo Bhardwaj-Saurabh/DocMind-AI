@@ -19,16 +19,18 @@ class MarkdownFormatter:
     - Structure: Headings, sections maintained
     """
 
-    def __init__(self, include_metadata: bool = True, include_page_numbers: bool = True):
+    def __init__(self, include_metadata: bool = True, include_page_numbers: bool = True, preserve_hierarchy: bool = True):
         """
         Initialize markdown formatter.
 
         Args:
             include_metadata: Whether to include document metadata
             include_page_numbers: Whether to include page number markers
+            preserve_hierarchy: Whether to preserve document hierarchy (headings, sections)
         """
         self.include_metadata = include_metadata
         self.include_page_numbers = include_page_numbers
+        self.preserve_hierarchy = preserve_hierarchy
 
     def format(self, result: ExtractionResult) -> str:
         """
@@ -65,7 +67,8 @@ class MarkdownFormatter:
         # Metadata section
         lines.append("## Document Information\n")
         lines.append(f"- **File**: {metadata.file_name}")
-        lines.append(f"- **Format**: {metadata.format.value.upper()}")
+        format_str = metadata.format.value.upper() if metadata.format else "UNKNOWN"
+        lines.append(f"- **Format**: {format_str}")
         lines.append(f"- **Pages**: {metadata.total_pages}")
 
         if metadata.author:
@@ -217,7 +220,7 @@ class MarkdownFormatter:
         lines = []
 
         # Image section header
-        image_type = image.image_type.value.replace('_', ' ').title()
+        image_type = image.image_type.value.replace('_', ' ').title() if image.image_type else "Image"
         lines.append(f"### {image_type} (Page {page_num})")
         lines.append("")
 
