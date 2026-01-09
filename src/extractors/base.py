@@ -3,7 +3,7 @@ Base extractor interface for document extraction.
 """
 
 from abc import ABC, abstractmethod
-from typing import List, Optional, Dict, Any
+from typing import TypeVar, Generic
 from pathlib import Path
 import hashlib
 
@@ -16,7 +16,10 @@ from ..models import (
 )
 
 
-class BaseExtractor(ABC):
+T = TypeVar("T", bound="BaseExtractor")
+
+
+class BaseExtractor(ABC, Generic[T]):
     """
     Abstract base class for document extractors.
 
@@ -89,7 +92,7 @@ class BaseExtractor(ABC):
         pass
 
     @abstractmethod
-    def extract_images(self, page_number: int) -> List[Dict[str, Any]]:
+    def extract_images(self, page_number: int) -> list[dict[str, any]]:
         """
         Extract embedded images from a specific page.
 
@@ -102,7 +105,7 @@ class BaseExtractor(ABC):
         pass
 
     @abstractmethod
-    def extract_tables(self, page_number: int) -> List[Dict[str, Any]]:
+    def extract_tables(self, page_number: int) -> list[dict[str, any]]:
         """
         Extract tables from a specific page.
 
@@ -144,7 +147,7 @@ class BaseExtractor(ABC):
         pass
 
     def extract_page(
-        self, page_number: int, strategy: Optional[ProcessingStrategy] = None
+        self, page_number: int, strategy: ProcessingStrategy | None = None
     ) -> PageContent:
         """
         Extract content from a single page using the specified strategy.
@@ -201,7 +204,7 @@ class BaseExtractor(ABC):
             char_count=len(text) if text else 0,
         )
 
-    def extract_all_pages(self) -> List[PageContent]:
+    def extract_all_pages(self) -> list[PageContent]:
         """
         Extract content from all pages in the document.
 

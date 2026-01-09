@@ -7,6 +7,7 @@ and basic content extraction:
 - DOCXExtractor: Extracts content from Word documents using python-docx
 - PPTExtractor: Extracts content from PowerPoint files using python-pptx
 - BaseExtractor: Abstract base class for all extractors
+- ExtractorFactory: Factory for creating extractors based on file type
 """
 
 # Base extractor
@@ -17,9 +18,14 @@ from .pdf_extractor import PDFExtractor
 # from .docx_extractor import DOCXExtractor  # TODO: Implement
 # from .ppt_extractor import PPTExtractor  # TODO: Implement
 
+# Factory
+from .factory import ExtractorFactory, create_extractor
+
 __all__ = [
     "BaseExtractor",
     "PDFExtractor",
     # "DOCXExtractor",
     # "PPTExtractor",
+    "ExtractorFactory",
+    "create_extractor",
 ]

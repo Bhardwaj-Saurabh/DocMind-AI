@@ -2,7 +2,6 @@
 Data models for extracted content from documents.
 """
 
-from typing import Optional, List, Dict, Any
 from pydantic import BaseModel, Field
 from enum import Enum
 
@@ -27,19 +26,36 @@ class ExtractedImage(BaseModel):
     image_type: ImageType = Field(default=ImageType.UNKNOWN, description="Type of image")
 
     # Image data
-    image_data: Optional[bytes] = Field(default=None, description="Raw image bytes")
-    image_path: Optional[str] = Field(default=None, description="Path to saved image file")
-    width: Optional[int] = Field(default=None, description="Image width in pixels")
-    height: Optional[int] = Field(default=None, description="Image height in pixels")
-    format: Optional[str] = Field(default=None, description="Image format (PNG, JPEG, etc.)")
+    image_data: bytes | None = Field(default=None, description="Raw image bytes")
+    image_path: str | None = Field(default=None, description="Path to saved image file")
+    width: int | None = Field(default=None, description="Image width in pixels")
+    height: int | None = Field(default=None, description="Image height in pixels")
+    format: str | None = Field(default=None, description="Image format (PNG, JPEG, etc.)")
 
     # Vision API analysis
-    description: Optional[str] = Field(default=None, description="AI-generated description")
-    extracted_text: Optional[str] = Field(default=None, description="Text extracted from image (OCR)")
-    confidence_score: Optional[float] = Field(default=None, description="Confidence score (0-1)")
+    description: str | None = Field(default=None, description="AI-generated description")
+    extracted_text: str | None = Field(default=None, description="Text extracted from image (OCR)")
+    confidence_score: float | None = Field(default=None, description="Confidence score (0-1)")
 
     # Position information
-    bbox: Optional[Dict[str, float]] = Field(default=None, description="Bounding box {x, y, width, height}")
+    bbox: dict[str, float] | None = Field(default=None, description="Bounding box {x, y, width, height}")
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "ExtractedImage":
+        """Type-safe factory method from dictionary."""
+        return cls(**data)
+
+    @property
+    def has_description(self) -> bool:
+        """Check if image has AI-generated description."""
+        return bool(self.description)
+
+    @property
+    def aspect_ratio(self) -> float | None:
+        """Calculate image aspect ratio (width/height)."""
+        if self.width and self.height and self.height > 0:
+            return self.width / self.height
+        return None
 
     class Config:
         arbitrary_types_allowed = True
@@ -66,18 +82,36 @@ class ExtractedTable(BaseModel):
     has_merged_cells: bool = Field(default=False, description="Whether table has merged cells")
 
     # Table data
-    data: List[List[str]] = Field(default_factory=list, description="Table data as 2D list")
-    headers: Optional[List[str]] = Field(default=None, description="Column headers")
+    data: list[list[str]] = Field(default_factory=list, description="Table data as 2D list")
+    headers: list[str] | None = Field(default=None, description="Column headers")
 
     # Metadata
-    title: Optional[str] = Field(default=None, description="Table title or caption")
+    title: str | None = Field(default=None, description="Table title or caption")
     extraction_method: str = Field(default="structural", description="Method used (structural, vision, hybrid)")
-    confidence_score: Optional[float] = Field(default=None, description="Confidence score (0-1)")
+    confidence_score: float | None = Field(default=None, description="Confidence score (0-1)")
 
     # Position information
-    bbox: Optional[Dict[str, float]] = Field(default=None, description="Bounding box {x, y, width, height}")
+    bbox: dict[str, float] | None = Field(default=None, description="Bounding box {x, y, width, height}")
 
-    def to_dict(self) -> List[Dict[str, Any]]:
+    @classmethod
+    def from_dict(cls, data: dict) -> "ExtractedTable":
+        """Type-safe factory method from dictionary."""
+        return cls(**data)
+
+    @property
+    def is_simple(self) -> bool:
+        """Check if table has simple structure."""
+        return (
+            self.complexity == TableComplexity.SIMPLE
+            and not self.has_merged_cells
+        )
+
+    @property
+    def cell_count(self) -> int:
+        """Get total number of cells in table."""
+        return self.rows * self.columns
+
+    def to_dict(self) -> list[dict[str, any]]:
         """Convert table to list of dictionaries (one per row)."""
         if not self.headers:
             return [{"col_{}".format(i): cell for i, cell in enumerate(row)} for row in self.data]
@@ -103,18 +137,28 @@ class ExtractedChart(BaseModel):
 
     chart_id: str = Field(..., description="Unique identifier for the chart")
     page_number: int = Field(..., description="Page number where chart appears")
-    chart_type: Optional[str] = Field(default=None, description="Type of chart (bar, line, pie, etc.)")
+    chart_type: str | None = Field(default=None, description="Type of chart (bar, line, pie, etc.)")
 
     # Chart data (if extractable)
     has_underlying_data: bool = Field(default=False, description="Whether chart has extractable data")
-    data: Optional[Dict[str, Any]] = Field(default=None, description="Chart data if available")
+    data: dict[str, any] | None = Field(default=None, description="Chart data if available")
 
     # Vision API analysis
-    description: Optional[str] = Field(default=None, description="AI-generated description")
-    insights: Optional[List[str]] = Field(default=None, description="Key insights from chart")
+    description: str | None = Field(default=None, description="AI-generated description")
+    insights: list[str] | None = Field(default=None, description="Key insights from chart")
 
     # Image of chart
-    image: Optional[ExtractedImage] = Field(default=None, description="Chart as image")
+    image: ExtractedImage | None = Field(default=None, description="Chart as image")
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "ExtractedChart":
+        """Type-safe factory method from dictionary."""
+        return cls(**data)
+
+    @property
+    def has_analysis(self) -> bool:
+        """Check if chart has AI-generated analysis."""
+        return bool(self.description or self.insights)
 
     class Config:
         arbitrary_types_allowed = True

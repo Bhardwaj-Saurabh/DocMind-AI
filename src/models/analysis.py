@@ -2,7 +2,6 @@
 Data models for content analysis and processing strategies.
 """
 
-from typing import Optional, Dict, List
 from pydantic import BaseModel, Field
 from enum import Enum
 
@@ -127,7 +126,7 @@ class ProcessingPlan(BaseModel):
     total_pages: int = Field(..., description="Total number of pages")
 
     # Per-page analysis
-    page_analyses: List[ContentAnalysisResult] = Field(default_factory=list, description="Analysis for each page")
+    page_analyses: list[ContentAnalysisResult] = Field(default_factory=list, description="Analysis for each page")
 
     # Aggregate statistics
     text_only_pages: int = Field(default=0, description="Number of text-only pages")
@@ -139,9 +138,24 @@ class ProcessingPlan(BaseModel):
     total_estimated_time: float = Field(default=0.0, description="Total estimated time in seconds")
 
     # Strategy breakdown
-    strategy_counts: Dict[str, int] = Field(default_factory=dict, description="Count of each strategy")
+    strategy_counts: dict[str, int] = Field(default_factory=dict, description="Count of each strategy")
 
-    def get_cost_breakdown(self) -> Dict[str, float]:
+    @classmethod
+    def from_dict(cls, data: dict) -> "ProcessingPlan":
+        """Type-safe factory method from dictionary."""
+        return cls(**data)
+
+    @property
+    def average_cost_per_page(self) -> float:
+        """Get average estimated cost per page."""
+        return self.total_estimated_cost / self.total_pages if self.total_pages > 0 else 0.0
+
+    @property
+    def vision_percentage(self) -> float:
+        """Get percentage of pages requiring vision API."""
+        return (self.vision_pages / self.total_pages * 100) if self.total_pages > 0 else 0.0
+
+    def get_cost_breakdown(self) -> dict[str, float]:
         """Get cost breakdown by strategy."""
         breakdown = {}
         for analysis in self.page_analyses:
@@ -149,7 +163,7 @@ class ProcessingPlan(BaseModel):
             breakdown[strategy] = breakdown.get(strategy, 0.0) + analysis.estimated_cost
         return breakdown
 
-    def get_pages_by_strategy(self, strategy: ProcessingStrategy) -> List[int]:
+    def get_pages_by_strategy(self, strategy: ProcessingStrategy) -> list[int]:
         """Get list of page numbers using a specific strategy."""
         return [
             analysis.page_number

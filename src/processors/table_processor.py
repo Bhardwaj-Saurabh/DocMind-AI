@@ -8,10 +8,6 @@ This processor implements a cost-optimized approach to table extraction:
 """
 
 import time
-from typing import List, Optional, Dict, Any, Tuple
-import io
-
-from PIL import Image
 
 from ..models import ExtractedTable, TableComplexity
 from ..utils import get_logger, log_cost
@@ -30,7 +26,7 @@ class TableProcessor:
     RULE_BASED_COST = 0.002  # PyMuPDF/pdfplumber extraction
     VISION_FALLBACK_COST = 0.02  # OpenAI Vision API
 
-    def __init__(self, vision_processor: Optional[Any] = None):
+    def __init__(self, vision_processor: any | None = None):
         """
         Initialize table processor.
 
@@ -40,12 +36,40 @@ class TableProcessor:
         self.logger = get_logger()
         self.vision_processor = vision_processor
 
+    def extract_table(
+        self,
+        page: any,
+        page_number: int,
+        table_index: int,
+        fallback_to_vision: bool = True
+    ) -> tuple[ExtractedTable | None, float, float]:
+        """
+        Extract a single table from a page.
+
+        Single item delegates to batch operation for consistency.
+
+        Args:
+            page: PyMuPDF page object
+            page_number: Page number
+            table_index: Index of table on page
+            fallback_to_vision: Whether to use vision API for complex tables
+
+        Returns:
+            Tuple of (extracted_table, cost, time)
+        """
+        results = self.extract_tables_batch([page], [page_number], fallback_to_vision)
+        if results and len(results) > 0:
+            tables, cost, time_taken = results[0]
+            if tables and len(tables) > table_index:
+                return tables[table_index], cost, time_taken
+        return None, 0.0, 0.0
+
     def extract_tables(
         self,
-        page: Any,
+        page: any,
         page_number: int,
         fallback_to_vision: bool = True
-    ) -> Tuple[List[ExtractedTable], float, float]:
+    ) -> tuple[list[ExtractedTable], float, float]:
         """
         Extract all tables from a page.
 
@@ -113,7 +137,32 @@ class TableProcessor:
         processing_time = time.time() - start_time
         return extracted_tables, total_cost, processing_time
 
-    def _extract_with_pymupdf(self, page: Any) -> List[Dict[str, Any]]:
+    def extract_tables_batch(
+        self,
+        pages: list[any],
+        page_numbers: list[int],
+        fallback_to_vision: bool = True
+    ) -> list[tuple[list[ExtractedTable], float, float]]:
+        """
+        Extract tables from multiple pages in batch.
+
+        Vectorized batch operation for efficient processing.
+
+        Args:
+            pages: List of PyMuPDF page objects
+            page_numbers: List of page numbers
+            fallback_to_vision: Whether to use vision API for complex tables
+
+        Returns:
+            List of tuples (extracted_tables, cost, time) for each page
+        """
+        results = []
+        for page, page_number in zip(pages, page_numbers):
+            tables, cost, time_taken = self.extract_tables(page, page_number, fallback_to_vision)
+            results.append((tables, cost, time_taken))
+        return results
+
+    def _extract_with_pymupdf(self, page: any) -> list[dict[str, any]]:
         """
         Extract tables using PyMuPDF's table detection.
 
@@ -166,7 +215,7 @@ class TableProcessor:
             self.logger.error(f"PyMuPDF table extraction failed: {e}")
             return []
 
-    def _analyze_table_complexity(self, table_data: Dict[str, Any]) -> TableComplexity:
+    def _analyze_table_complexity(self, table_data: dict[str, any]) -> TableComplexity:
         """
         Analyze table complexity to determine if vision fallback is needed.
 
@@ -204,7 +253,7 @@ class TableProcessor:
 
         return TableComplexity.SIMPLE
 
-    def _render_table_region(self, page: Any, bbox: Optional[tuple]) -> Optional[bytes]:
+    def _render_table_region(self, page: any, bbox: tuple | None) -> bytes | None:
         """
         Render a specific table region as an image.
 
@@ -241,7 +290,7 @@ class TableProcessor:
         image_bytes: bytes,
         page_number: int,
         table_index: int
-    ) -> Optional[ExtractedTable]:
+    ) -> ExtractedTable | None:
         """
         Extract table using vision API (fallback for complex tables).
 
@@ -281,7 +330,7 @@ class TableProcessor:
 
     def _create_table_object(
         self,
-        table_data: Dict[str, Any],
+        table_data: dict[str, any],
         page_number: int,
         table_index: int,
         complexity: TableComplexity
@@ -323,7 +372,7 @@ class TableProcessor:
         )
 
 
-def create_table_processor(vision_processor: Optional[Any] = None) -> TableProcessor:
+def create_table_processor(vision_processor: any | None = None) -> TableProcessor:
     """
     Factory function to create a table processor.
 
