@@ -106,7 +106,17 @@ class ContentAnalysisResult(BaseModel):
         return self.embedded_images_count > 0
 
     def needs_vision_api(self) -> bool:
-        """Determine if vision API is needed."""
+        """
+        Determine if vision API is needed.
+
+        Returns True if the page contains ANY non-text content that requires
+        detailed visual description for RAG applications:
+        - Embedded images (photos, diagrams, illustrations)
+        - Charts and graphs
+        - Constructed graphics (SmartArt, shapes)
+        - Complex tables
+        - Scanned content
+        """
         return (
             self.recommended_strategy
             in [
@@ -116,6 +126,8 @@ class ContentAnalysisResult(BaseModel):
             ]
             or self.is_scanned
             or self.has_complex_visuals()
+            or self.has_embedded_images()  # CRITICAL: Images need detailed descriptions
+            or self.charts_count > 0  # CRITICAL: Charts need detailed textual descriptions
         )
 
 

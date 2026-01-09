@@ -1,12 +1,14 @@
 """
 Factory for creating document extractors based on file type.
+
+Implements Factory + Dispatcher pattern for type-safe routing.
 """
 
 from pathlib import Path
-from enum import Enum
 
 from .base import BaseExtractor
 from ..models import DocumentFormat
+from ..exceptions import UnsupportedFormatError
 
 
 class ExtractorFactory:
@@ -42,7 +44,8 @@ class ExtractorFactory:
             Appropriate extractor instance
 
         Raises:
-            ValueError: If file format is not supported
+            FileNotFoundError: If file does not exist
+            UnsupportedFormatError: If file format is not supported
         """
         path = Path(file_path)
 
@@ -51,11 +54,23 @@ class ExtractorFactory:
 
         format = cls._detect_format(path)
 
-        if format not in cls._extractors:
-            raise ValueError(f"Unsupported format: {format}")
-
-        extractor_class = cls._extractors[format]
-        return extractor_class(file_path)
+        # Use structural pattern matching (Python 3.10+)
+        match format:
+            case DocumentFormat.PDF | DocumentFormat.DOCX | DocumentFormat.PPTX:
+                if format not in cls._extractors:
+                    raise UnsupportedFormatError(
+                        f"Format {format.value} recognized but extractor not registered. "
+                        f"Available formats: {[f.value for f in cls.get_supported_formats()]}"
+                    )
+                extractor_class = cls._extractors[format]
+                return extractor_class(file_path)
+            case DocumentFormat.UNKNOWN:
+                raise UnsupportedFormatError(
+                    f"Unknown file format for: {path.name}. "
+                    f"Supported extensions: .pdf, .docx, .pptx"
+                )
+            case _:
+                raise UnsupportedFormatError(f"Unsupported format: {format.value}")
 
     @classmethod
     def _detect_format(cls, path: Path) -> DocumentFormat:

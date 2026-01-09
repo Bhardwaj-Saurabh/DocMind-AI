@@ -2,14 +2,21 @@
 Output formatters for DocMind-AI.
 
 Formatters for different output formats:
-- JSONFormatter: JSON output with schema validation
-- MarkdownFormatter: Human-readable markdown
-- CSVFormatter: Tabular data export
-- HTMLFormatter: Styled HTML output
+- MarkdownFormatter: Hierarchical markdown optimized for RAG
+- JSONFormatter: JSON output with schema validation (TODO)
+- CSVFormatter: Tabular data export (TODO)
+- HTMLFormatter: Styled HTML output (TODO)
 """
 
-# Formatters will be imported here as they are implemented
+# Markdown formatter (primary format for RAG applications)
+from .markdown_formatter import MarkdownFormatter, format_to_markdown
+
+# Other formatters (to be implemented)
 # from .json_formatter import JSONFormatter
-# from .markdown_formatter import MarkdownFormatter
 # from .csv_formatter import CSVFormatter
 # from .html_formatter import HTMLFormatter
+
+__all__ = [
+    "MarkdownFormatter",
+    "format_to_markdown",
+]

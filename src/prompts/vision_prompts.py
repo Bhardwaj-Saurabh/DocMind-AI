@@ -5,61 +5,161 @@ These prompts are used with multimodal models (GPT-4 Vision, Claude Sonnet)
 to extract content from images, charts, scanned documents, etc.
 """
 
-# Full page analysis prompt
-FULL_PAGE_ANALYSIS_PROMPT = """You are analyzing a page from a document. Please extract all visible content from this image.
+# Full page analysis prompt - Enhanced for RAG
+FULL_PAGE_ANALYSIS_PROMPT = """You are analyzing a page from a document for RAG (Retrieval-Augmented Generation) applications.
 
-Extract and structure the following:
+**CRITICAL REQUIREMENTS**:
+1. Convert ALL visual content to detailed text - this is the ONLY representation users will have
+2. Maintain hierarchical structure (headings, sections, subsections)
+3. Provide comprehensive descriptions for images, charts, and diagrams
+4. Extract tables with complete data
+5. Preserve document flow and reading order
 
-1. **Text Content**: All readable text on the page, maintaining structure and formatting
-2. **Visual Elements**: Describe any images, diagrams, or visual elements
-3. **Tables**: If there are tables, extract the structure and data
-4. **Charts/Graphs**: Describe charts and extract key data points
-5. **Layout**: Note the overall layout and organization
+**Extract and describe the following in detail**:
 
-Format your response as structured JSON:
-{
-    "text": "full text content...",
-    "images": [{"description": "...", "location": "..."}],
-    "tables": [{"headers": [...], "rows": [[...]]}],
-    "charts": [{"type": "...", "description": "...", "data": {...}}],
-    "layout_notes": "..."
-}
+1. **Document Structure and Hierarchy**:
+   - Page title or heading (if present)
+   - Section headings and subheadings
+   - Hierarchical levels (H1, H2, H3, etc.)
+   - Numbered or bulleted lists
+   - Overall organization
 
-Be thorough and accurate. Extract everything visible."""
+2. **Text Content**:
+   - All readable text, maintaining original formatting
+   - Paragraphs with proper breaks
+   - Emphasis (bold, italic, underline)
+   - Font sizes and styles (if significant)
+   - Reading order and flow
+   - Captions and labels
 
-# Image analysis prompt
-IMAGE_ANALYSIS_PROMPT = """Analyze this image and provide a detailed description.
+3. **Visual Elements** (DETAILED descriptions required):
+   - **Images**: Provide comprehensive descriptions (minimum 50 words each)
+     - What is shown
+     - Visual details (colors, composition, style)
+     - Text within images
+     - Purpose and context
+     - Position on page (top, middle, bottom, left, right)
 
-Please describe:
-1. What is shown in the image (main subject, objects, people, scenes)
-2. Any text visible in the image
-3. Important details, colors, context
-4. Purpose or function of this image in a document context
+   - **Diagrams**: Describe structure and content (minimum 100 words)
+     - Type of diagram
+     - All components and labels
+     - Connections and relationships
+     - Flow or hierarchy
+     - Complete meaning and purpose
 
-Provide a clear, concise description suitable for document extraction."""
+4. **Charts and Graphs** (COMPREHENSIVE descriptions):
+   - Chart type and title
+   - All axes with labels and scales
+   - All data series with complete data points
+   - Trends and patterns
+   - Key insights and takeaways
+   - Colors and legend
+   - Source and time period
+   - **Minimum 150 words per chart**
 
-# Chart analysis prompt
-CHART_ANALYSIS_PROMPT = """Analyze this chart or graph and extract the data.
+5. **Tables**:
+   - Table title or caption
+   - Column headers
+   - All rows and cells with data
+   - Row headers if present
+   - Merged cells or special formatting
+   - Table footnotes
+   - Convert to markdown table format
+
+6. **Layout and Formatting**:
+   - Multi-column layout (describe reading order)
+   - Sidebar content
+   - Headers and footers
+   - Page numbers
+   - Watermarks or background elements
+   - Spatial relationships between elements
+
+7. **Supporting Elements**:
+   - Footnotes and endnotes
+   - Callout boxes or sidebars
+   - Pull quotes
+   - Annotations or comments
+   - Logos or branding
+
+**Output Format**:
+Provide a comprehensive markdown document that represents the ENTIRE page as hierarchical text. Use:
+- # for main headings
+- ## for subheadings
+- ### for sub-subheadings
+- Markdown tables for tabular data
+- Detailed narrative paragraphs for images, charts, and diagrams
+- Proper formatting (bold, italic, bullets, numbering)
+
+The output should be a complete, self-contained textual representation that someone can read and understand without seeing the original page. Aim for thoroughness over brevity."""
+
+# Image analysis prompt - Enhanced for RAG
+IMAGE_ANALYSIS_PROMPT = """Analyze this image and provide a COMPREHENSIVE, DETAILED textual description suitable for RAG (Retrieval-Augmented Generation) applications.
+
+**CRITICAL**: Your description will be converted to text and used for semantic search and embeddings. Be thorough and descriptive.
 
 Please provide:
-1. **Chart Type**: (bar, line, pie, scatter, etc.)
-2. **Title**: Chart title if visible
-3. **Axes**: X and Y axis labels and scales
-4. **Data Series**: All data series with labels
-5. **Data Points**: Extract as many data points as clearly visible
-6. **Key Insights**: Main takeaways from the chart
 
-Format as structured JSON:
-{
-    "chart_type": "...",
-    "title": "...",
-    "x_axis": {"label": "...", "scale": "..."},
-    "y_axis": {"label": "...", "scale": "..."},
-    "data_series": [
-        {"name": "...", "data_points": [{"x": ..., "y": ...}]}
-    ],
-    "insights": ["..."]
-}"""
+1. **Main Subject**: Detailed description of the primary content (objects, people, scenes, concepts)
+2. **Visual Details**:
+   - Colors, shapes, sizes, positions
+   - Spatial relationships between elements
+   - Visual hierarchy and emphasis
+3. **Text Content**: All visible text, labels, captions, annotations
+4. **Context & Purpose**:
+   - What this image represents in a document
+   - Key message or information conveyed
+   - Relationship to surrounding content
+5. **Technical Details**:
+   - Image type (photograph, diagram, illustration, screenshot)
+   - Quality and clarity
+   - Any notable visual elements
+
+Format your response as a detailed narrative paragraph (minimum 100 words) that captures ALL information visible in the image. This text will be used for semantic search, so include relevant keywords and concepts."""
+
+# Chart analysis prompt - Enhanced for RAG
+CHART_ANALYSIS_PROMPT = """Analyze this chart or graph and provide a COMPREHENSIVE textual description suitable for RAG applications.
+
+**CRITICAL**: Convert ALL visual information to detailed text. Your description will be used for semantic search and must be self-contained.
+
+Provide a detailed narrative description including:
+
+1. **Chart Overview**:
+   - Chart type (bar, line, pie, scatter, area, combination, etc.)
+   - Title and subtitle
+   - Time period or scope covered
+   - Overall purpose and message
+
+2. **Axes and Scales**:
+   - X-axis: label, units, range, scale type (linear/logarithmic)
+   - Y-axis: label, units, range, scale type
+   - Secondary axes if present
+
+3. **Data Series** (describe each in detail):
+   - Series name and legend labels
+   - Color and visual representation
+   - Complete data points with values
+   - Trends and patterns observed
+   - Min, max, average values
+
+4. **Visual Elements**:
+   - Grid lines, reference lines, annotations
+   - Data labels and values displayed
+   - Colors used and their meanings
+   - Any highlighting or emphasis
+
+5. **Key Insights and Analysis**:
+   - Main trends (increasing, decreasing, stable)
+   - Comparisons between series
+   - Notable data points (peaks, valleys, outliers)
+   - Relationships and correlations
+   - Business or contextual implications
+
+6. **Supporting Information**:
+   - Source attribution if visible
+   - Footnotes or disclaimers
+   - Time period or date range
+
+Format as a comprehensive narrative (minimum 150 words) that describes EVERYTHING visible in the chart. Someone should be able to understand all the data and insights without seeing the visual."""
 
 # Table extraction prompt
 TABLE_EXTRACTION_PROMPT = """Extract the table structure and data from this image.
@@ -100,18 +200,54 @@ Provide clean, accurate text extraction suitable for document processing.
 If there are multiple columns, extract left column first, then right column.
 Mark unclear sections with [UNCLEAR: ...] with your best guess."""
 
-# Diagram analysis prompt
-DIAGRAM_ANALYSIS_PROMPT = """Analyze this diagram and explain its content and structure.
+# Diagram analysis prompt - Enhanced for RAG
+DIAGRAM_ANALYSIS_PROMPT = """Analyze this diagram and provide a COMPREHENSIVE textual description suitable for RAG applications.
 
-Please describe:
-1. **Type**: (flowchart, organizational chart, technical diagram, etc.)
-2. **Components**: All boxes, shapes, and elements
-3. **Connections**: How elements are connected
-4. **Labels**: All text labels on elements and connections
-5. **Flow/Hierarchy**: Direction of flow or hierarchical structure
-6. **Purpose**: What this diagram represents
+**CRITICAL**: Convert this visual diagram to detailed, hierarchical text. Your description will be used for semantic search and must capture all information.
 
-Provide a clear description that captures the diagram's meaning and structure."""
+Provide a detailed narrative including:
+
+1. **Diagram Type and Purpose**:
+   - Specific type (flowchart, org chart, process diagram, network diagram, UML, ER diagram, etc.)
+   - Overall purpose and what it represents
+   - Context and domain (business process, technical architecture, organizational structure, etc.)
+
+2. **Components and Elements** (describe each):
+   - All shapes, boxes, nodes, and their types (rectangle, diamond, circle, etc.)
+   - Text content within each element
+   - Colors, sizes, and visual styling
+   - Hierarchical levels or groupings
+   - Numbering or labeling systems
+
+3. **Connections and Relationships**:
+   - All arrows, lines, and connectors
+   - Direction of flow (unidirectional, bidirectional)
+   - Labels on connections
+   - Connection types (solid, dashed, thick, thin)
+   - What each connection represents (data flow, reporting structure, process sequence, etc.)
+
+4. **Flow and Structure**:
+   - Start and end points
+   - Main pathways and branches
+   - Decision points and conditions
+   - Loops or cycles
+   - Hierarchical levels (top-down, bottom-up)
+   - Left-to-right or other directional flow
+
+5. **Annotations and Supporting Information**:
+   - Legend or key
+   - Notes and callouts
+   - Labels and identifiers
+   - Any explanatory text
+
+6. **Semantic Meaning**:
+   - What process or structure is depicted
+   - Roles and responsibilities (for org charts)
+   - Steps and sequence (for flowcharts)
+   - System components and interactions (for architecture diagrams)
+   - Key decision points and outcomes
+
+Format as a detailed, structured narrative (minimum 200 words) that completely describes the diagram. Use hierarchical structure with clear headings. Someone should fully understand the diagram without seeing it."""
 
 # Form extraction prompt
 FORM_EXTRACTION_PROMPT = """Extract information from this form image.
@@ -136,17 +272,58 @@ Format as structured JSON:
     ]
 }"""
 
-# SmartArt/Complex Graphics prompt
-SMARTART_PROMPT = """Analyze this SmartArt or complex graphic element.
+# SmartArt/Complex Graphics prompt - Enhanced for RAG
+SMARTART_PROMPT = """Analyze this SmartArt or complex graphic element and convert it to COMPREHENSIVE hierarchical text suitable for RAG applications.
 
-Please describe:
-1. **Type**: (process, hierarchy, cycle, relationship, matrix, pyramid, etc.)
-2. **Main Elements**: All shapes and their text content
-3. **Relationships**: How elements are connected or related
-4. **Structure**: Overall organization and flow
-5. **Purpose**: What concept or process is being illustrated
+**CRITICAL**: This visual graphic must be completely represented in text form. Your description will be the ONLY way users can access this information.
 
-Provide a clear textual representation that preserves the meaning and structure."""
+Provide a detailed, structured description including:
+
+1. **Graphic Type and Category**:
+   - SmartArt type (process, hierarchy, cycle, relationship, matrix, pyramid, list, picture, etc.)
+   - Visual layout (linear, circular, hierarchical, matrix, etc.)
+   - Purpose and message being conveyed
+
+2. **Main Elements** (describe each component):
+   - All shapes, boxes, circles, or graphical elements
+   - Complete text content within each element
+   - Visual properties (colors, sizes, positioning)
+   - Icons or images embedded
+   - Numbering or ordering system
+
+3. **Hierarchical Structure**:
+   - Primary/main level elements
+   - Secondary/supporting elements
+   - Sub-elements and details
+   - Parent-child relationships
+   - Groupings and categories
+
+4. **Relationships and Connections**:
+   - How elements relate to each other
+   - Flow or sequence (if applicable)
+   - Dependencies or prerequisites
+   - Arrows, lines, or connectors
+   - Directional flow (left-to-right, top-to-bottom, circular, etc.)
+
+5. **Visual Hierarchy and Emphasis**:
+   - Which elements are emphasized (larger, bolder, different color)
+   - Visual groupings or sections
+   - Color coding and its meaning
+   - Background shapes or containers
+
+6. **Complete Content Extraction**:
+   - All visible text (headings, body text, labels, captions)
+   - Any numbers, dates, or statistics
+   - Bullet points or list items
+   - Supporting text or descriptions
+
+7. **Conceptual Understanding**:
+   - What concept, process, or relationship is illustrated
+   - The key message or takeaway
+   - How the visual structure supports the meaning
+   - Practical application or context
+
+Format as a detailed, hierarchical narrative (minimum 200 words) with clear structure. Use markdown headings, bullet points, and numbering to preserve the hierarchy. Someone should fully understand the graphic's content and meaning without seeing it."""
 
 # Multi-column layout prompt
 MULTI_COLUMN_PROMPT = """This page has a multi-column layout. Extract text maintaining the correct reading order.

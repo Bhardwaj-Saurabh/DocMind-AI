@@ -110,11 +110,57 @@ class VisionAgent:
             charts = []
 
             if isinstance(content, dict):
-                # Structured JSON response
+                # Structured JSON response from vision model
                 text = content.get("text", "")
-                # TODO: Parse images, tables, charts from structured response
+
+                # Parse images with descriptions (already converted to text by vision model)
+                if "images" in content:
+                    for img_data in content.get("images", []):
+                        from ..models import ExtractedImage
+                        images.append(ExtractedImage(
+                            image_id=f"img_{page_number}_{len(images)}",
+                            page_number=page_number,
+                            format="png",
+                            width=0,  # Not available from vision
+                            height=0,
+                            size_bytes=0,
+                            description=img_data.get("description", ""),  # Vision-generated description
+                            text_content=img_data.get("text_content", ""),
+                            extraction_method="vision_api",
+                            confidence_score=0.9
+                        ))
+
+                # Parse tables (already converted to markdown by vision model)
+                if "tables" in content:
+                    for tbl_data in content.get("tables", []):
+                        from ..models import ExtractedTable
+                        tables.append(ExtractedTable(
+                            table_id=f"tbl_{page_number}_{len(tables)}",
+                            page_number=page_number,
+                            headers=tbl_data.get("headers", []),
+                            data=tbl_data.get("rows", []),
+                            title=tbl_data.get("title"),
+                            extraction_method="vision_api",
+                            confidence_score=0.9
+                        ))
+
+                # Parse charts (already converted to text by vision model)
+                if "charts" in content:
+                    for chart_data in content.get("charts", []):
+                        from ..models import ExtractedChart
+                        charts.append(ExtractedChart(
+                            chart_id=f"chart_{page_number}_{len(charts)}",
+                            page_number=page_number,
+                            chart_type=chart_data.get("type", "unknown"),
+                            title=chart_data.get("title", ""),
+                            description=chart_data.get("description", ""),  # Comprehensive description
+                            data_series=[],  # Data embedded in description
+                            extraction_method="vision_api",
+                            confidence_score=0.9
+                        ))
             else:
-                # Plain text response
+                # Plain text response (comprehensive markdown from updated prompts)
+                # This is the expected format with the new RAG-optimized prompts
                 text = str(content)
 
             # Calculate metrics

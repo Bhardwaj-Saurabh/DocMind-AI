@@ -4,15 +4,16 @@ Table extraction agent for LangGraph workflow.
 This agent specializes in extracting tables from document pages using:
 1. Rule-based extraction (PyMuPDF) for simple tables
 2. Vision API fallback for complex tables
+
+Follows dependency injection pattern: accepts processors as constructor parameters.
 """
 
 import time
-from typing import Dict, Any
 
 from ..graph.state import DocumentState
 from ..models import PageContent, ProcessingStrategy
 from ..processors import TableProcessor, VisionProcessor
-from ..utils import get_logger, log_agent_step, log_cost, log_performance
+from ..utils import get_logger
 
 
 class TableExtractor:
@@ -22,35 +23,51 @@ class TableExtractor:
     This agent processes pages with STRUCTURAL_PARSING strategy,
     optimizing for cost by using rule-based extraction first and
     falling back to vision API only for complex tables.
+
+    Implements dependency injection for testability.
     """
 
-    def __init__(self, enable_vision_fallback: bool = True):
+    def __init__(
+        self,
+        table_processor: TableProcessor | None = None,
+        vision_processor: VisionProcessor | None = None,
+        enable_vision_fallback: bool = True
+    ):
         """
-        Initialize table extractor agent.
+        Initialize table extractor agent with dependency injection.
 
         Args:
+            table_processor: TableProcessor instance (created if None)
+            vision_processor: VisionProcessor instance (created if None and enabled)
             enable_vision_fallback: Whether to use vision API for complex tables
         """
         self.logger = get_logger()
         self.name = "TableExtractor"
 
-        # Initialize processors
-        vision_processor = None
-        if enable_vision_fallback:
+        # Dependency injection: accept processors or create them
+        if enable_vision_fallback and vision_processor is None:
             try:
                 vision_processor = VisionProcessor()
-                log_agent_step(self.name, "Vision fallback enabled for complex tables")
+                self.logger.info(
+                    "Vision fallback enabled",
+                    agent=self.name,
+                    processor="VisionProcessor"
+                )
             except Exception as e:
-                self.logger.warning(f"Could not initialize vision processor: {e}")
-                log_agent_step(self.name, "Vision fallback disabled (no API key)")
+                self.logger.warning(
+                    "Could not initialize vision processor",
+                    agent=self.name,
+                    error=str(e)
+                )
+                vision_processor = None
 
-        self.table_processor = TableProcessor(vision_processor=vision_processor)
+        self.table_processor = table_processor or TableProcessor(vision_processor=vision_processor)
         self.enable_vision_fallback = enable_vision_fallback and vision_processor is not None
 
-        log_agent_step(
-            self.name,
-            "Initialized",
-            {"vision_fallback": self.enable_vision_fallback},
+        self.logger.info(
+            "TableExtractor initialized",
+            agent=self.name,
+            vision_fallback_enabled=self.enable_vision_fallback
         )
 
     def process_node(self, state: DocumentState) -> DocumentState:
@@ -63,10 +80,11 @@ class TableExtractor:
         Returns:
             Updated state with table extraction results
         """
-        log_agent_step(
-            self.name,
+        self.logger.info(
             "Processing pages with tables",
-            {"total_pages": len(state["page_analyses"])},
+            agent=self.name,
+            document_id=state["document_id"],
+            total_pages=len(state["page_analyses"])
         )
 
         start_time = time.time()
@@ -82,17 +100,19 @@ class TableExtractor:
                 pages_to_process.append(analysis.page_number)
 
         if not pages_to_process:
-            log_agent_step(
-                self.name,
+            self.logger.debug(
                 "No pages require table extraction",
-                level="debug",
+                agent=self.name,
+                document_id=state["document_id"]
             )
             return state
 
-        log_agent_step(
-            self.name,
-            f"Found {len(pages_to_process)} pages with tables",
-            {"pages": pages_to_process},
+        self.logger.info(
+            "Found pages with tables",
+            agent=self.name,
+            document_id=state["document_id"],
+            page_count=len(pages_to_process),
+            pages=pages_to_process
         )
 
         # Process each page

@@ -1,0 +1,207 @@
+{
+  "info": {
+    "name": "DocMind-AI API",
+    "description": "Collection of API endpoints for DocMind-AI document extraction",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000",
+      "type": "string"
+    },
+    {
+      "key": "job_id",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/health",
+          "host": ["{{base_url}}"],
+          "path": ["health"]
+        },
+        "description": "Check API health and status"
+      }
+    },
+    {
+      "name": "Root Info",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/",
+          "host": ["{{base_url}}"],
+          "path": [""]
+        },
+        "description": "Get API information"
+      }
+    },
+    {
+      "name": "Extract Document (Async)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "// Save job_id to environment",
+              "var jsonData = pm.response.json();",
+              "pm.environment.set(\"job_id\", jsonData.job_id);"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "file",
+              "type": "file",
+              "src": []
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{base_url}}/extract?output_format=markdown&enable_vision=true&preserve_hierarchy=true",
+          "host": ["{{base_url}}"],
+          "path": ["extract"],
+          "query": [
+            {
+              "key": "output_format",
+              "value": "markdown",
+              "description": "json, markdown, or text"
+            },
+            {
+              "key": "enable_vision",
+              "value": "true"
+            },
+            {
+              "key": "preserve_hierarchy",
+              "value": "true"
+            }
+          ]
+        },
+        "description": "Upload document for async extraction"
+      }
+    },
+    {
+      "name": "Extract Document (Sync)",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "file",
+              "type": "file",
+              "src": []
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{base_url}}/extract/sync?output_format=text&enable_vision=false",
+          "host": ["{{base_url}}"],
+          "path": ["extract", "sync"],
+          "query": [
+            {
+              "key": "output_format",
+              "value": "text"
+            },
+            {
+              "key": "enable_vision",
+              "value": "false"
+            }
+          ]
+        },
+        "description": "Upload document for synchronous extraction (small documents only)"
+      }
+    },
+    {
+      "name": "Get Job Status",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/jobs/{{job_id}}",
+          "host": ["{{base_url}}"],
+          "path": ["jobs", "{{job_id}}"]
+        },
+        "description": "Get status of extraction job"
+      }
+    },
+    {
+      "name": "Get Job Result (JSON)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/jobs/{{job_id}}/result",
+          "host": ["{{base_url}}"],
+          "path": ["jobs", "{{job_id}}", "result"]
+        },
+        "description": "Get extraction result as JSON"
+      }
+    },
+    {
+      "name": "Get Job Result (Markdown)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/jobs/{{job_id}}/result/markdown",
+          "host": ["{{base_url}}"],
+          "path": ["jobs", "{{job_id}}", "result", "markdown"]
+        },
+        "description": "Get extraction result as plain text markdown"
+      }
+    },
+    {
+      "name": "List All Jobs",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/jobs?limit=50",
+          "host": ["{{base_url}}"],
+          "path": ["jobs"],
+          "query": [
+            {
+              "key": "limit",
+              "value": "50"
+            },
+            {
+              "key": "status",
+              "value": "completed",
+              "disabled": true
+            }
+          ]
+        },
+        "description": "List all jobs with optional filtering"
+      }
+    },
+    {
+      "name": "Delete Job",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/jobs/{{job_id}}",
+          "host": ["{{base_url}}"],
+          "path": ["jobs", "{{job_id}}"]
+        },
+        "description": "Delete job and its results"
+      }
+    }
+  ]
+}

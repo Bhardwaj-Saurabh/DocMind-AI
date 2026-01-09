@@ -4,12 +4,11 @@ Content Analysis Agent - Analyzes document pages to determine optimal processing
 This is the CRITICAL agent that enables adaptive processing and cost optimization.
 """
 
-from typing import List, Dict, Any
 import time
 
-from ..models import ContentAnalysisResult, ProcessingPlan
+from ..models import ProcessingPlan
 from ..graph.state import DocumentState
-from ..utils import get_logger, log_agent_step, log_performance
+from ..utils import get_logger
 
 
 class ContentAnalyzer:
@@ -43,10 +42,12 @@ class ContentAnalyzer:
         Returns:
             Updated state with page analyses
         """
-        log_agent_step(
-            self.name,
+        # Structured logging with context
+        self.logger.info(
             "Starting content analysis",
-            {"pages": state["metadata"].total_pages if state["metadata"] else "unknown"},
+            agent=self.name,
+            pages=state["metadata"].total_pages if state["metadata"] else "unknown",
+            document_id=state["document_id"]
         )
 
         start_time = time.time()
@@ -56,10 +57,12 @@ class ContentAnalyzer:
         # Get metadata if not already loaded
         if not state["metadata"]:
             state["metadata"] = extractor.get_metadata()
-            log_agent_step(
-                self.name,
-                "Loaded metadata",
-                {"title": state["metadata"].title, "pages": state["metadata"].total_pages},
+            self.logger.info(
+                "Loaded document metadata",
+                agent=self.name,
+                title=state["metadata"].title,
+                pages=state["metadata"].total_pages,
+                format=state["metadata"].format.value
             )
 
         total_pages = state["metadata"].total_pages
@@ -68,29 +71,38 @@ class ContentAnalyzer:
         page_analyses = []
         for page_num in range(1, total_pages + 1):
             try:
-                log_agent_step(
-                    self.name,
-                    f"Analyzing page {page_num}/{total_pages}",
-                    level="debug",
+                self.logger.debug(
+                    "Analyzing page",
+                    agent=self.name,
+                    page=page_num,
+                    total_pages=total_pages,
+                    document_id=state["document_id"]
                 )
 
                 # Use the extractor's analyze_page_content method
                 analysis = extractor.analyze_page_content(page_num)
                 page_analyses.append(analysis)
 
-                log_agent_step(
-                    self.name,
-                    f"Page {page_num} analyzed",
-                    {
-                        "type": analysis.content_type.value,
-                        "strategy": analysis.recommended_strategy.value,
-                        "cost": f"${analysis.estimated_cost:.4f}",
-                    },
-                    level="debug",
+                self.logger.debug(
+                    "Page analyzed successfully",
+                    agent=self.name,
+                    page=page_num,
+                    content_type=analysis.content_type.value,
+                    strategy=analysis.recommended_strategy.value,
+                    estimated_cost_usd=analysis.estimated_cost,
+                    text_quality=analysis.text_quality.value
                 )
 
             except Exception as e:
-                self.logger.error(f"Error analyzing page {page_num}: {e}")
+                # Structured error logging
+                self.logger.error(
+                    "Page analysis failed",
+                    agent=self.name,
+                    page=page_num,
+                    document_id=state["document_id"],
+                    error=str(e),
+                    exc_info=True
+                )
                 state["errors"].append(f"Analysis failed for page {page_num}: {str(e)}")
 
         # Update state
@@ -106,19 +118,16 @@ class ContentAnalyzer:
 
         duration = time.time() - start_time
 
-        log_agent_step(
-            self.name,
-            "Analysis complete",
-            {
-                "pages": len(page_analyses),
-                "estimated_cost": f"${total_cost:.4f}",
-                "estimated_time": f"{total_time:.1f}s",
-            },
-        )
-
-        log_performance(
-            f"Content analysis for {len(page_analyses)} pages",
-            duration,
+        # Structured logging for completion with full context
+        self.logger.info(
+            "Content analysis completed",
+            agent=self.name,
+            document_id=state["document_id"],
+            pages_analyzed=len(page_analyses),
+            total_estimated_cost_usd=total_cost,
+            total_estimated_time_seconds=total_time,
+            analysis_duration_seconds=duration,
+            pages_per_second=len(page_analyses) / duration if duration > 0 else 0
         )
 
         # Update phase

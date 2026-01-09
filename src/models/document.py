@@ -227,22 +227,33 @@ class ExtractionResult(BaseModel):
         """Export as plain text."""
         return self.full_text
 
-    def to_markdown(self) -> str:
-        """Export as markdown."""
-        lines = [f"# {self.metadata.title or self.metadata.file_name}\n"]
+    def to_markdown(
+        self,
+        include_metadata: bool = True,
+        include_page_numbers: bool = True,
+        preserve_hierarchy: bool = True
+    ) -> str:
+        """
+        Export as hierarchical markdown optimized for RAG applications.
 
-        for page in self.pages:
-            lines.append(f"\n## Page {page.page_number}\n")
-            lines.append(page.text)
+        Uses the comprehensive MarkdownFormatter to:
+        - Preserve document hierarchy for embeddings
+        - Convert all non-text content to detailed text descriptions
+        - Format tables as markdown tables
+        - Include page markers for chunking
 
-            for table in page.tables:
-                if table.title:
-                    lines.append(f"\n### {table.title}\n")
-                # Add markdown table
-                if table.headers:
-                    lines.append("| " + " | ".join(table.headers) + " |")
-                    lines.append("| " + " | ".join(["---"] * len(table.headers)) + " |")
-                for row in table.data:
-                    lines.append("| " + " | ".join(row) + " |")
+        Args:
+            include_metadata: Whether to include document metadata
+            include_page_numbers: Whether to include page number markers
+            preserve_hierarchy: Whether to preserve text hierarchy (headings)
 
-        return "\n".join(lines)
+        Returns:
+            Formatted markdown string suitable for RAG/embedding
+        """
+        from ..formatters import format_to_markdown
+        return format_to_markdown(
+            self,
+            include_metadata=include_metadata,
+            include_page_numbers=include_page_numbers,
+            preserve_hierarchy=preserve_hierarchy
+        )
